@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    }
+    .card-gradient {
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+    }
+    .glow {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .float-animation {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-in {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+    .cv-container {
+      background: white;
+      color: #000;
+      padding: 40px;
+      font-family: Arial, sans-serif;
+    }
+    .cv-header {
+      text-align: center;
+      border-bottom: 3px solid #6366f1;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .cv-name {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .cv-contact {
+      font-size: 12px;
+      color: #666;
+    }
+    .cv-section {
+      margin-bottom: 20px;
+    }
+    .cv-section-title {
+      font-size: 14px;
+      font-weight: bold;
+      background: #6366f1;
+      color: white;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+    .cv-entry {
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .cv-entry-title {
+      font-weight: bold;
+      color: #333;
+    }
+    .cv-entry-subtitle {
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full gradient-bg text-white overflow-auto flex flex-col"><!-- Navigation -->
+   <nav class="fixed top-0 left-0 right-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-700/50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+     <div class="flex items-center gap-2">
+      <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg><span class="text-xl font-bold">JobTracker</span>
+     </div>
+     <div class="flex items-center gap-6"><button onclick="navigateTo('home')" class="nav-link hover:text-indigo-400 transition-colors">Home</button> <button onclick="navigateTo('contact')" class="nav-link hover:text-indigo-400 transition-colors">Contact</button> <span id="userDisplay" class="hidden text-indigo-400 font-medium"></span> <button id="profileNavBtn" onclick="navigateTo('profile')" class="hidden nav-link hover:text-indigo-400 transition-colors">👤 Profile</button> <button id="dashboardNavBtn" onclick="navigateTo('dashboard')" class="hidden nav-link hover:text-indigo-400 transition-colors">Dashboard</button> <button id="loginHeaderBtn" onclick="scrollToAuthForm('login')" class="bg-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-500 transition-all">Login</button> <button id="registerHeaderBtn" onclick="scrollToAuthForm('register')" class="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-500 transition-all">Register</button> <button id="logoutBtn" onclick="logout()" class="hidden bg-red-500/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-all">Logout</button>
+     </div>
+    </div>
+   </nav><!-- Main Content -->
+   <div class="flex-1"><!-- Home Page with Hero -->
+    <div id="homePage" class="page min-h-full pt-20">
+     <section class="relative py-20 px-6 overflow-hidden">
+      <div class="absolute inset-0 overflow-hidden">
+       <div class="absolute top-20 left-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl"></div>
+       <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      </div>
+      <div class="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center"><!-- Hero Content -->
+       <div class="space-y-8">
+        <h1 id="heroTitle" class="text-5xl lg:text-6xl font-bold leading-tight">Track Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Dream Job</span> Journey</h1>
+        <p id="heroSubtitle" class="text-xl text-slate-300 leading-relaxed">Organize your job applications, track progress, and land your next opportunity with our powerful job tracking system.</p>
+        <div class="flex flex-wrap gap-4">
+         <div class="flex items-center gap-2 text-slate-400">
+          <svg class="w-5 h-5 text-green-400" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg><span>Track Applications</span>
+         </div>
+         <div class="flex items-center gap-2 text-slate-400">
+          <svg class="w-5 h-5 text-green-400" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg><span>Organize Status</span>
+         </div>
+         <div class="flex items-center gap-2 text-slate-400">
+          <svg class="w-5 h-5 text-green-400" fill="currentColor" viewbox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          </svg><span>Add Notes</span>
+         </div>
+        </div>
+       </div><!-- Auth Card -->
+       <div id="authCard" class="card-gradient rounded-2xl p-8 glow float-animation border border-slate-700/50">
+        <div class="flex mb-6"><button id="loginTab" onclick="switchAuthTab('login')" class="flex-1 py-3 text-center font-semibold border-b-2 border-indigo-500 text-indigo-400 transition-all">Login</button> <button id="registerTab" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center font-semibold border-b-2 border-transparent text-slate-400 hover:text-white transition-all">Register</button>
+        </div><!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+         <div><label for="loginUserId" class="block text-sm font-medium text-slate-300 mb-2">User ID</label> <input type="text" id="loginUserId" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your user ID">
+         </div>
+         <div><label for="loginPassword" class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <div class="relative"><input type="password" id="loginPassword" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your password"> <button type="button" onclick="togglePasswordVisibility('loginPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors">
+            <svg id="loginPasswordIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg></button>
+          </div>
+         </div>
+         <div id="loginError" class="hidden text-red-400 text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all transform hover:scale-[1.02]">Login to Dashboard</button>
+         <div class="text-center"><button type="button" onclick="openForgotPasswordModal()" class="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">Forgot password?</button>
+         </div>
+        </form><!-- Register Form -->
+        <form id="registerForm" onsubmit="handleRegister(event)" class="space-y-5 hidden">
+         <div><label for="regUserId" class="block text-sm font-medium text-slate-300 mb-2">Choose User ID</label> <input type="text" id="regUserId" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Create a user ID">
+         </div>
+         <div><label for="regEmail" class="block text-sm font-medium text-slate-300 mb-2">Email</label> <input type="email" id="regEmail" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your email">
+         </div>
+         <div><label for="regPassword" class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+          <div class="relative"><input type="password" id="regPassword" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Create a password"> <button type="button" onclick="togglePasswordVisibility('regPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors">
+            <svg id="regPasswordIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg></button>
+          </div>
+         </div>
+         <div><label for="regConfirmPassword" class="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+          <div class="relative"><input type="password" id="regConfirmPassword" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Confirm your password"> <button type="button" onclick="togglePasswordVisibility('regConfirmPassword')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors">
+            <svg id="regConfirmPasswordIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg></button>
+          </div>
+         </div>
+         <div id="registerMsg" class="hidden text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all transform hover:scale-[1.02]">Create Account</button>
+        </form>
+       </div>
+      </div>
+     </section><!-- Features Section -->
+     <section class="py-20 px-6 bg-slate-900/50">
+      <div class="max-w-7xl mx-auto">
+       <h2 class="text-3xl font-bold text-center mb-12">Why Use JobTracker?</h2>
+       <div class="grid md:grid-cols-3 gap-8">
+        <div class="card-gradient p-6 rounded-xl border border-slate-700/50 hover:border-indigo-500/50 transition-all">
+         <div class="w-12 h-12 bg-indigo-500/20 rounded-lg flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+         </div>
+         <h3 class="text-xl font-semibold mb-2">Easy Organization</h3>
+         <p class="text-slate-400">Keep all your job applications organized in one place with status tracking.</p>
+        </div>
+        <div class="card-gradient p-6 rounded-xl border border-slate-700/50 hover:border-indigo-500/50 transition-all">
+         <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+         </div>
+         <h3 class="text-xl font-semibold mb-2">Quick Updates</h3>
+         <p class="text-slate-400">Update application status instantly as you progress through interviews.</p>
+        </div>
+        <div class="card-gradient p-6 rounded-xl border border-slate-700/50 hover:border-indigo-500/50 transition-all">
+         <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
+          <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+         </div>
+         <h3 class="text-xl font-semibold mb-2">Secure &amp; Private</h3>
+         <p class="text-slate-400">Your job search data is securely stored and private to you.</p>
+        </div>
+       </div>
+      </div>
+     </section>
+    </div><!-- Contact Page -->
+    <div id="contactPage" class="page min-h-full pt-24 px-6 hidden">
+     <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-12">
+       <h1 id="contactTitle" class="text-4xl font-bold mb-4">Get In Touch</h1>
+       <p class="text-slate-400">Have questions? We'd love to hear from you.</p>
+      </div>
+      <div class="card-gradient rounded-2xl p-8 border border-slate-700/50">
+       <form onsubmit="handleContact(event)" class="space-y-6">
+        <div class="grid md:grid-cols-2 gap-6">
+         <div><label for="contactName" class="block text-sm font-medium text-slate-300 mb-2">Name</label> <input type="text" id="contactName" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Your name">
+         </div>
+         <div><label for="contactEmail" class="block text-sm font-medium text-slate-300 mb-2">Email</label> <input type="email" id="contactEmail" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="your@email.com">
+         </div>
+        </div>
+        <div><label for="contactSubject" class="block text-sm font-medium text-slate-300 mb-2">Subject</label> <input type="text" id="contactSubject" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="How can we help?">
+        </div>
+        <div><label for="contactMessage" class="block text-sm font-medium text-slate-300 mb-2">Message</label> <textarea id="contactMessage" rows="5" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Tell us more..."></textarea>
+        </div>
+        <div id="contactMsg" class="hidden text-green-400 text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all transform hover:scale-[1.02]"> Send Message </button>
+       </form>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6 mt-12">
+       <div class="text-center p-6">
+        <div class="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+         <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+         </svg>
+        </div>
+        <h3 class="font-semibold mb-1">Email</h3>
+        <p class="text-slate-400 text-sm">support@jobtracker.com</p>
+       </div>
+       <div class="text-center p-6">
+        <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+         <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+         </svg>
+        </div>
+        <h3 class="font-semibold mb-1">Location</h3>
+        <p class="text-slate-400 text-sm">San Francisco, CA</p>
+       </div>
+       <div class="text-center p-6">
+        <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+         <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+         </svg>
+        </div>
+        <h3 class="font-semibold mb-1">Hours</h3>
+        <p class="text-slate-400 text-sm">Mon-Fri 9AM-6PM</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Profile Page -->
+    <div id="profilePage" class="page min-h-full pt-24 px-6 hidden">
+     <div class="max-w-4xl mx-auto">
+      <div class="flex justify-between items-center mb-8">
+       <h1 class="text-3xl font-bold">My Profile</h1><button onclick="exportToPDF()" class="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 px-6 py-3 rounded-xl font-semibold hover:from-green-500 hover:to-green-600 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </svg> Download CV as PDF </button>
+      </div><!-- Personal Information Section -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> Personal Information</h2>
+       <form id="personalForm" onsubmit="saveProfile(event)" class="space-y-4">
+        <div class="grid md:grid-cols-2 gap-4">
+         <div><label for="fullName" class="block text-sm font-medium text-slate-300 mb-2">Full Name *</label> <input type="text" id="fullName" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Your full name">
+         </div>
+         <div><label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email *</label> <input type="email" id="email" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="your@email.com">
+         </div>
+         <div><label for="phone" class="block text-sm font-medium text-slate-300 mb-2">Phone</label> <input type="tel" id="phone" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="+1 (555) 000-0000">
+         </div>
+         <div><label for="location" class="block text-sm font-medium text-slate-300 mb-2">Location</label> <input type="text" id="location" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="City, Country">
+         </div>
+        </div><button type="submit" id="savePersonalBtn" class="w-full py-3 bg-indigo-600 rounded-xl font-semibold hover:bg-indigo-500 transition-all">Save Personal Info</button>
+       </form>
+      </div><!-- Professional Summary -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg> Professional Summary</h2>
+       <form onsubmit="saveProfile(event)" class="space-y-4">
+        <div><label for="summary" class="block text-sm font-medium text-slate-300 mb-2">Summary</label> <textarea id="summary" rows="4" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Write a brief professional summary..."></textarea>
+        </div><button type="submit" class="w-full py-3 bg-purple-600 rounded-xl font-semibold hover:bg-purple-500 transition-all">Save Summary</button>
+       </form>
+      </div><!-- Skills Section -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> Skills</h2>
+       <form onsubmit="saveProfile(event)" class="space-y-4">
+        <div><label for="skills" class="block text-sm font-medium text-slate-300 mb-2">Skills (comma separated)</label> <textarea id="skills" rows="3" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="e.g., JavaScript, Python, React, Node.js"></textarea>
+        </div><button type="submit" class="w-full py-3 bg-blue-600 rounded-xl font-semibold hover:bg-blue-500 transition-all">Save Skills</button>
+       </form>
+      </div><!-- Experience Section -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg> Work Experience</h2>
+       <form onsubmit="saveProfile(event)" class="space-y-4">
+        <div><label for="experience" class="block text-sm font-medium text-slate-300 mb-2">Experience Details</label> <textarea id="experience" rows="4" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Job Title - Company (Year) - Description..."></textarea>
+        </div><button type="submit" class="w-full py-3 bg-yellow-600 rounded-xl font-semibold hover:bg-yellow-500 transition-all">Save Experience</button>
+       </form>
+      </div><!-- Education Section -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C6.596 6.289 2.25 9.486 2.25 13.5c0 5.355 3.414 9.955 8.059 11.863m0-13c5.404.24 9.75 3.437 9.75 7.863 0 5.355-3.414 9.955-8.059 11.863M12 6.253L9.239 9.07M12 6.253l2.761 2.817" />
+        </svg> Education</h2>
+       <form onsubmit="saveProfile(event)" class="space-y-4">
+        <div><label for="education" class="block text-sm font-medium text-slate-300 mb-2">Education Details</label> <textarea id="education" rows="4" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Degree - University (Year) - CGPA/Grade..."></textarea>
+        </div><button type="submit" class="w-full py-3 bg-green-600 rounded-xl font-semibold hover:bg-green-500 transition-all">Save Education</button>
+       </form>
+      </div><!-- Certifications Section -->
+      <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
+       <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+        <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg> Certifications</h2>
+       <form onsubmit="saveProfile(event)" class="space-y-4">
+        <div><label for="certifications" class="block text-sm font-medium text-slate-300 mb-2">Certifications</label> <textarea id="certifications" rows="3" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Certification Name - Issuer (Year)..."></textarea>
+        </div><button type="submit" class="w-full py-3 bg-pink-600 rounded-xl font-semibold hover:bg-pink-500 transition-all">Save Certifications</button>
+       </form>
+      </div>
+     </div>
+    </div><!-- Dashboard Page (Protected) -->
+    <div id="dashboardPage" class="page min-h-full pt-24 px-6 hidden">
+     <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+       <div>
+        <h1 class="text-3xl font-bold">Job Applications</h1>
+        <p class="text-slate-400">Track and manage your job search</p>
+       </div><button onclick="openAddModal()" class="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg> Add Application </button>
+      </div><!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+       <div class="card-gradient p-4 rounded-xl border border-slate-700/50">
+        <p class="text-slate-400 text-sm">Total</p>
+        <p id="statTotal" class="text-2xl font-bold">0</p>
+       </div>
+       <div class="card-gradient p-4 rounded-xl border border-slate-700/50">
+        <p class="text-slate-400 text-sm">Applied</p>
+        <p id="statApplied" class="text-2xl font-bold text-blue-400">0</p>
+       </div>
+       <div class="card-gradient p-4 rounded-xl border border-slate-700/50">
+        <p class="text-slate-400 text-sm">Interview</p>
+        <p id="statInterview" class="text-2xl font-bold text-yellow-400">0</p>
+       </div>
+       <div class="card-gradient p-4 rounded-xl border border-slate-700/50">
+        <p class="text-slate-400 text-sm">Offer</p>
+        <p id="statOffer" class="text-2xl font-bold text-green-400">0</p>
+       </div>
+      </div><!-- Job List -->
+      <div id="jobList" class="space-y-4">
+       <div class="card-gradient rounded-xl p-8 border border-slate-700/50 text-center">
+        <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <p class="text-slate-400">No job applications yet. Click "Add Application" to get started!</p>
+       </div>
+      </div>
+      <p id="limitWarning" class="hidden text-amber-400 text-center mt-6 p-4 bg-amber-500/10 rounded-xl">⚠️ You've reached the maximum limit of 999 applications.</p>
+     </div>
+    </div>
+   </div><!-- Footer -->
+   <footer class="bg-slate-900/50 border-t border-slate-700/50 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 py-12">
+     <div class="grid md:grid-cols-3 gap-8 mb-8">
+      <div>
+       <h3 class="font-bold mb-4">JobTracker</h3>
+       <p class="text-slate-400 text-sm">Track your job applications with ease and land your dream role.</p>
+      </div>
+      <div>
+       <h3 class="font-bold mb-4">Quick Links</h3>
+       <ul class="space-y-2 text-sm text-slate-400">
+        <li><button onclick="navigateTo('home')" class="hover:text-indigo-400 transition-colors">Home</button></li>
+        <li><button onclick="navigateTo('contact')" class="hover:text-indigo-400 transition-colors">Contact</button></li>
+        <li><button onclick="navigateTo('profile')" class="hover:text-indigo-400 transition-colors">Profile</button></li>
+       </ul>
+      </div>
+      <div>
+       <h3 class="font-bold mb-4">Get Started</h3><button onclick="openAuthModal('register')" class="text-indigo-400 hover:text-indigo-300 text-sm transition-colors">Create your account today</button>
+      </div>
+     </div>
+     <div class="border-t border-slate-700/50 pt-8">
+      <p class="text-center text-slate-400 text-sm">© 2024 JobTracker. All rights reserved.</p>
+     </div>
+    </div>
+   </footer>
+  </div><!-- Auth Modal -->
+  <div id="authModal" class="fixed inset-0 z-50 hidden">
+   <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+   <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6">
+    <div class="card-gradient rounded-2xl p-8 border border-slate-700/50">
+     <div class="flex justify-between items-center mb-6">
+      <h2 id="authModalTitle" class="text-2xl font-bold">Login</h2><button onclick="closeAuthModal()" class="text-slate-400 hover:text-white transition-colors">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+       </svg></button>
+     </div>
+     <div class="flex gap-4 mb-6"><button onclick="switchAuthTab('login')" id="authLoginTab" class="flex-1 py-2 text-center font-semibold border-b-2 border-indigo-500 text-indigo-400">Login</button> <button onclick="switchAuthTab('register')" id="authRegisterTab" class="flex-1 py-2 text-center font-semibold border-b-2 border-transparent text-slate-400 hover:text-white">Register</button>
+     </div><!-- Login Form -->
+     <form id="authLoginForm" onsubmit="handleLogin(event)" class="space-y-4 hidden">
+      <div><label for="authLoginUserId" class="block text-sm font-medium text-slate-300 mb-2">User ID</label> <input type="text" id="authLoginUserId" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your user ID">
+      </div>
+      <div><label for="authLoginPassword" class="block text-sm font-medium text-slate-300 mb-2">Password</label> <input type="password" id="authLoginPassword" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your password">
+      </div>
+      <div id="authLoginError" class="hidden text-red-400 text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Login</button>
+     </form><!-- Register Form -->
+     <form id="authRegisterForm" onsubmit="handleRegister(event)" class="space-y-4">
+      <div><label for="authRegUserId" class="block text-sm font-medium text-slate-300 mb-2">Choose User ID</label> <input type="text" id="authRegUserId" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Create a user ID">
+      </div>
+      <div><label for="authRegEmail" class="block text-sm font-medium text-slate-300 mb-2">Email</label> <input type="email" id="authRegEmail" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Enter your email">
+      </div>
+      <div><label for="authRegPassword" class="block text-sm font-medium text-slate-300 mb-2">Password</label> <input type="password" id="authRegPassword" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="Create a password">
+      </div>
+      <div id="authRegMsg" class="hidden text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Create Account</button>
+     </form>
+    </div>
+   </div>
+  </div><!-- Add/Edit Job Modal -->
+  <div id="jobModal" class="fixed inset-0 z-50 hidden">
+   <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeModal()"></div>
+   <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+    <div class="card-gradient rounded-2xl p-6 border border-slate-700/50">
+     <div class="flex justify-between items-center mb-6">
+      <h2 id="modalTitle" class="text-xl font-bold">Add Job Application</h2><button onclick="closeModal()" class="text-slate-400 hover:text-white transition-colors">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+       </svg></button>
+     </div>
+     <form id="jobForm" onsubmit="handleJobSubmit(event)" class="space-y-4"><input type="hidden" id="editingJobId">
+      <div><label for="jobCompany" class="block text-sm font-medium text-slate-300 mb-2">Company *</label> <input type="text" id="jobCompany" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="e.g., Google">
+      </div>
+      <div><label for="jobPosition" class="block text-sm font-medium text-slate-300 mb-2">Position *</label> <input type="text" id="jobPosition" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="e.g., Software Engineer">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+       <div><label for="jobStatus" class="block text-sm font-medium text-slate-300 mb-2">Status</label> <select id="jobStatus" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white"> <option value="Applied">Applied</option> <option value="Screening">Screening</option> <option value="Interview">Interview</option> <option value="Offer">Offer</option> <option value="Rejected">Rejected</option> </select>
+       </div>
+       <div><label for="jobDate" class="block text-sm font-medium text-slate-300 mb-2">Applied Date</label> <input type="date" id="jobDate" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white">
+       </div>
+      </div>
+      <div><label for="jobNotes" class="block text-sm font-medium text-slate-300 mb-2">Notes</label> <textarea id="jobNotes" rows="3" class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none" placeholder="Any additional notes..."></textarea>
+      </div>
+      <div>
+       <div class="flex justify-between items-center mb-3"><label class="block text-sm font-medium text-slate-300">Interview Rounds</label> <button type="button" onclick="addRoundRow()" class="text-indigo-400 hover:text-indigo-300 text-xs font-medium">+ Add Round</button>
+       </div>
+       <div id="roundsTableContainer" class="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+        <table class="w-full text-sm">
+         <thead class="bg-slate-800 border-b border-slate-700">
+          <tr>
+           <th class="px-3 py-2 text-left text-slate-400">Round</th>
+           <th class="px-3 py-2 text-left text-slate-400">Date</th>
+           <th class="px-3 py-2 text-center text-slate-400 w-12"></th>
+          </tr>
+         </thead>
+         <tbody id="roundsTable" class="divide-y divide-slate-700">
+         </tbody>
+        </table>
+       </div>
+      </div>
+      <div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-slate-700 rounded-xl font-semibold hover:bg-slate-600 transition-all">Cancel</button> <button type="submit" id="submitBtn" class="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Save</button>
+      </div>
+     </form>
+    </div>
+   </div>
+  </div><!-- Delete Confirmation -->
+  <div id="deleteConfirm" class="fixed inset-0 z-50 hidden">
+   <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeDeleteConfirm()"></div>
+   <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm p-6">
+    <div class="card-gradient rounded-2xl p-6 border border-red-500/30 text-center">
+     <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+     </div>
+     <h3 class="text-xl font-bold mb-2">Delete Application?</h3>
+     <p class="text-slate-400 mb-6">This action cannot be undone.</p>
+     <div class="flex gap-3"><button onclick="closeDeleteConfirm()" class="flex-1 py-3 bg-slate-700 rounded-xl font-semibold hover:bg-slate-600 transition-all">Cancel</button> <button onclick="confirmDelete()" id="confirmDeleteBtn" class="flex-1 py-3 bg-red-600 rounded-xl font-semibold hover:bg-red-500 transition-all">Delete</button>
+     </div>
+    </div>
+   </div>
+  </div><!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="fixed inset-0 z-50 hidden">
+   <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeForgotPasswordModal()"></div>
+   <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm p-6">
+    <div class="card-gradient rounded-2xl p-8 border border-slate-700/50">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Reset Password</h2><button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-white transition-colors">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+       </svg></button>
+     </div>
+     <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)" class="space-y-4">
+      <div><label for="forgotEmail" class="block text-sm font-medium text-slate-300 mb-2">Enter your Email</label> <input type="email" id="forgotEmail" required class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500" placeholder="your@email.com">
+      </div>
+      <div id="forgotMsg" class="hidden text-sm"></div><button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Send Reset Link</button> <button type="button" onclick="closeForgotPasswordModal()" class="w-full py-3 bg-slate-700 rounded-xl font-semibold hover:bg-slate-600 transition-all">Cancel</button>
+     </form>
+    </div>
+   </div>
+  </div><!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+   <div class="card-gradient px-6 py-4 rounded-xl border border-slate-700/50 flex items-center gap-3"><span id="toastIcon"></span> <span id="toastMessage"></span>
+   </div>
+  </div>
+  <script>
+    // Config and State
+    const defaultConfig = {
+      hero_title: 'Track Your Dream Job Journey',
+      hero_subtitle: 'Organize your job applications, track progress, and land your next opportunity with our powerful job tracking system.',
+      contact_title: 'Get In Touch',
+      background_color: '#0f172a',
+      surface_color: '#1e293b',
+      text_color: '#ffffff',
+      primary_action_color: '#6366f1',
+      secondary_action_color: '#a855f7',
+      font_family: 'Space Grotesk',
+      font_size: 16
+    };
+
+    let config = { ...defaultConfig };
+    let currentUser = null;
+    let jobs = [];
+    let jobToDelete = null;
+    let recordCount = 0;
+    let currentRounds = [];
+    let profileData = {};
+
+    // Valid user credentials (for demo)
+    const validUsers = {
+      'akshayjain': 'password123'
+    };
+    const registeredUsers = {};
+
+    // Element SDK
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (newConfig) => {
+          config = { ...defaultConfig, ...newConfig };
+          applyConfig();
+        },
+        mapToCapabilities: (cfg) => ({
+          recolorables: [
+            { get: () => cfg.background_color || defaultConfig.background_color, set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+            { get: () => cfg.surface_color || defaultConfig.surface_color, set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+            { get: () => cfg.text_color || defaultConfig.text_color, set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+            { get: () => cfg.primary_action_color || defaultConfig.primary_action_color, set: (v) => { cfg.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+            { get: () => cfg.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { cfg.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+          ],
+          borderables: [],
+          fontEditable: { get: () => cfg.font_family || defaultConfig.font_family, set: (v) => { cfg.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+          fontSizeable: { get: () => cfg.font_size || defaultConfig.font_size, set: (v) => { cfg.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+        }),
+        mapToEditPanelValues: (cfg) => new Map([
+          ['hero_title', cfg.hero_title || defaultConfig.hero_title],
+          ['hero_subtitle', cfg.hero_subtitle || defaultConfig.hero_subtitle],
+          ['contact_title', cfg.contact_title || defaultConfig.contact_title]
+        ])
+      });
+    }
+
+    function applyConfig() {
+      const heroTitle = document.getElementById('heroTitle');
+      const heroSubtitle = document.getElementById('heroSubtitle');
+      const contactTitle = document.getElementById('contactTitle');
+      
+      if (heroTitle) {
+        heroTitle.innerHTML = (config.hero_title || defaultConfig.hero_title).replace('Dream Job', '<span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Dream Job</span>');
+      }
+      if (heroSubtitle) heroSubtitle.textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+      if (contactTitle) contactTitle.textContent = config.contact_title || defaultConfig.contact_title;
+
+      const font = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      document.body.style.fontFamily = `${font}, sans-serif`;
+      document.querySelectorAll('h1').forEach(el => el.style.fontSize = `${baseSize * 3}px`);
+      document.querySelectorAll('h2').forEach(el => el.style.fontSize = `${baseSize * 1.875}px`);
+      document.querySelectorAll('h3').forEach(el => el.style.fontSize = `${baseSize * 1.25}px`);
+      document.querySelectorAll('p, span, button, input, select, textarea, label').forEach(el => {
+        if (!el.closest('h1') && !el.closest('h2') && !el.closest('h3')) {
+          el.style.fontSize = `${baseSize}px`;
+        }
+      });
+    }
+
+    // Data SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        jobs = data.filter(j => j.user_id === currentUser);
+        recordCount = data.length;
+        renderJobs();
+        updateStats();
+      }
+    };
+
+    async function initDataSdk() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error('Data SDK init failed');
+        }
+      }
+    }
+
+    // Navigation
+    function navigateTo(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      
+      if (page === 'home') {
+        document.getElementById('homePage').classList.remove('hidden');
+      } else if (page === 'contact') {
+        document.getElementById('contactPage').classList.remove('hidden');
+      } else if (page === 'profile' && currentUser) {
+        document.getElementById('profilePage').classList.remove('hidden');
+        loadProfile();
+      } else if (page === 'dashboard' && currentUser) {
+        document.getElementById('dashboardPage').classList.remove('hidden');
+      }
+    }
+
+    function scrollToAuthForm(formType) {
+      switchAuthTab(formType);
+      document.getElementById('authCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const loginTab = document.getElementById('loginTab');
+      const registerTab = document.getElementById('registerTab');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        loginTab.classList.add('border-indigo-500', 'text-indigo-400');
+        loginTab.classList.remove('border-transparent', 'text-slate-400');
+        registerTab.classList.remove('border-indigo-500', 'text-indigo-400');
+        registerTab.classList.add('border-transparent', 'text-slate-400');
+      } else {
+        registerForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+        registerTab.classList.add('border-indigo-500', 'text-indigo-400');
+        registerTab.classList.remove('border-transparent', 'text-slate-400');
+        loginTab.classList.remove('border-indigo-500', 'text-indigo-400');
+        loginTab.classList.add('border-transparent', 'text-slate-400');
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const userId = document.getElementById('loginUserId').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorEl = document.getElementById('loginError');
+
+      if (validUsers[userId] === password || registeredUsers[userId] === password) {
+        currentUser = userId;
+        document.getElementById('userDisplay').textContent = `👤 ${userId}`;
+        document.getElementById('userDisplay').classList.remove('hidden');
+        document.getElementById('profileNavBtn').classList.remove('hidden');
+        document.getElementById('dashboardNavBtn').classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.getElementById('loginHeaderBtn').classList.add('hidden');
+        document.getElementById('registerHeaderBtn').classList.add('hidden');
+        document.getElementById('loginForm').reset();
+        showToast('Welcome back!', 'success');
+        navigateTo('dashboard');
+        errorEl.classList.add('hidden');
+      } else {
+        errorEl.textContent = 'Invalid user ID or password';
+        errorEl.classList.remove('hidden');
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const userId = document.getElementById('regUserId').value.trim();
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      const msgEl = document.getElementById('registerMsg');
+
+      if (password !== confirmPassword) {
+        msgEl.textContent = 'Passwords do not match. Please try again.';
+        msgEl.classList.remove('hidden', 'text-green-400');
+        msgEl.classList.add('text-red-400');
+        return;
+      }
+
+      if (password.length < 6) {
+        msgEl.textContent = 'Password must be at least 6 characters long.';
+        msgEl.classList.remove('hidden', 'text-green-400');
+        msgEl.classList.add('text-red-400');
+        return;
+      }
+
+      if (validUsers[userId] || registeredUsers[userId]) {
+        msgEl.textContent = 'User ID already exists. Please choose another.';
+        msgEl.classList.remove('hidden', 'text-green-400');
+        msgEl.classList.add('text-red-400');
+        return;
+      }
+
+      registeredUsers[userId] = password;
+      msgEl.textContent = 'Account created! You can now login.';
+      msgEl.classList.remove('hidden', 'text-red-400');
+      msgEl.classList.add('text-green-400');
+      
+      setTimeout(() => {
+        switchAuthTab('login');
+        document.getElementById('loginUserId').value = userId;
+        document.getElementById('regUserId').value = '';
+        document.getElementById('regEmail').value = '';
+        document.getElementById('regPassword').value = '';
+        document.getElementById('regConfirmPassword').value = '';
+        msgEl.classList.add('hidden');
+      }, 1500);
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('userDisplay').classList.add('hidden');
+      document.getElementById('profileNavBtn').classList.add('hidden');
+      document.getElementById('dashboardNavBtn').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.add('hidden');
+      document.getElementById('loginHeaderBtn').classList.remove('hidden');
+      document.getElementById('registerHeaderBtn').classList.remove('hidden');
+      switchFormView('login');
+      navigateTo('home');
+      showToast('Logged out successfully', 'info');
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const field = document.getElementById(fieldId);
+      const icon = document.getElementById(fieldId + 'Icon');
+      
+      if (field.type === 'password') {
+        // Show password - use open eye icon
+        field.type = 'text';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+      } else {
+        // Hide password - use crossed eye icon
+        field.type = 'password';
+        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>';
+      }
+    }
+
+    function openForgotPasswordModal() {
+      document.getElementById('forgotPasswordModal').classList.remove('hidden');
+    }
+
+    function closeForgotPasswordModal() {
+      document.getElementById('forgotPasswordModal').classList.add('hidden');
+      document.getElementById('forgotPasswordForm').reset();
+      document.getElementById('forgotMsg').classList.add('hidden');
+    }
+
+    function handleForgotPassword(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgotEmail').value;
+      const msgEl = document.getElementById('forgotMsg');
+
+      msgEl.textContent = '✓ Password reset link sent to ' + email + '. Please check your email.';
+      msgEl.classList.remove('hidden', 'text-red-400');
+      msgEl.classList.add('text-green-400');
+
+      setTimeout(() => {
+        closeForgotPasswordModal();
+        showToast('Password reset instructions sent!', 'success');
+      }, 2000);
+    }
+
+    // Contact form
+    function handleContact(e) {
+      e.preventDefault();
+      const msgEl = document.getElementById('contactMsg');
+      msgEl.textContent = '✓ Message sent successfully! We\'ll get back to you soon.';
+      msgEl.classList.remove('hidden');
+      e.target.reset();
+      setTimeout(() => msgEl.classList.add('hidden'), 5000);
+    }
+
+    // Profile
+    function loadProfile() {
+      const data = jobs.find(j => j.user_id === currentUser);
+      if (data) {
+        profileData = { ...data };
+      }
+      
+      document.getElementById('fullName').value = profileData.full_name || '';
+      document.getElementById('email').value = profileData.email || '';
+      document.getElementById('phone').value = profileData.phone || '';
+      document.getElementById('location').value = profileData.location || '';
+      document.getElementById('summary').value = profileData.professional_summary || '';
+      document.getElementById('skills').value = profileData.skills || '';
+      document.getElementById('experience').value = profileData.experience || '';
+      document.getElementById('education').value = profileData.education || '';
+      document.getElementById('certifications').value = profileData.certifications || '';
+    }
+
+    async function saveProfile(e) {
+      e.preventDefault();
+      
+      const profileInfo = {
+        full_name: document.getElementById('fullName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        location: document.getElementById('location').value,
+        professional_summary: document.getElementById('summary').value,
+        skills: document.getElementById('skills').value,
+        experience: document.getElementById('experience').value,
+        education: document.getElementById('education').value,
+        certifications: document.getElementById('certifications').value,
+        user_id: `profile_${currentUser}`,
+        company: 'Profile',
+        position: 'Professional',
+        status: 'Profile',
+        rounds: '[]'
+      };
+
+      profileData = profileInfo;
+      showToast('Profile saved successfully!', 'success');
+    }
+
+    function exportToPDF() {
+      const fullName = document.getElementById('fullName').value || 'Your Name';
+      const email = document.getElementById('email').value || 'email@example.com';
+      const phone = document.getElementById('phone').value || '+1 (555) 000-0000';
+      const location = document.getElementById('location').value || 'City, Country';
+      const summary = document.getElementById('summary').value;
+      const skills = document.getElementById('skills').value;
+      const experience = document.getElementById('experience').value;
+      const education = document.getElementById('education').value;
+      const certifications = document.getElementById('certifications').value;
+
+      const cvHtml = `
+        <div class="cv-container">
+          <div class="cv-header">
+            <div class="cv-name">${escapeHtml(fullName)}</div>
+            <div class="cv-contact">
+              ${escapeHtml(email)} | ${escapeHtml(phone)} | ${escapeHtml(location)}
+            </div>
+          </div>
+
+          ${summary ? `
+            <div class="cv-section">
+              <div class="cv-section-title">PROFESSIONAL SUMMARY</div>
+              <div class="cv-entry">${escapeHtml(summary).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
+
+          ${skills ? `
+            <div class="cv-section">
+              <div class="cv-section-title">SKILLS</div>
+              <div class="cv-entry">
+                ${escapeHtml(skills).split(',').map(s => s.trim()).filter(s => s).join(' • ')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${experience ? `
+            <div class="cv-section">
+              <div class="cv-section-title">WORK EXPERIENCE</div>
+              <div class="cv-entry">${escapeHtml(experience).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
+
+          ${education ? `
+            <div class="cv-section">
+              <div class="cv-section-title">EDUCATION</div>
+              <div class="cv-entry">${escapeHtml(education).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
+
+          ${certifications ? `
+            <div class="cv-section">
+              <div class="cv-section-title">CERTIFICATIONS</div>
+              <div class="cv-entry">${escapeHtml(certifications).replace(/\n/g, '<br>')}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      const element = document.createElement('div');
+      element.innerHTML = cvHtml;
+
+      const opt = {
+        margin: 10,
+        filename: `${fullName.replace(/\s+/g, '_')}_CV.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+      showToast('CV downloaded successfully!', 'success');
+    }
+
+    // Job CRUD
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'Add Job Application';
+      document.getElementById('jobForm').reset();
+      document.getElementById('editingJobId').value = '';
+      document.getElementById('jobDate').value = new Date().toISOString().split('T')[0];
+      currentRounds = [];
+      renderRoundsTable();
+      document.getElementById('jobModal').classList.remove('hidden');
+    }
+
+    function openEditModal(job) {
+      document.getElementById('modalTitle').textContent = 'Edit Application';
+      document.getElementById('editingJobId').value = job.__backendId;
+      document.getElementById('jobCompany').value = job.company;
+      document.getElementById('jobPosition').value = job.position;
+      document.getElementById('jobStatus').value = job.status;
+      document.getElementById('jobDate').value = job.applied_date || '';
+      document.getElementById('jobNotes').value = job.notes || '';
+      currentRounds = job.rounds ? JSON.parse(job.rounds) : [];
+      renderRoundsTable();
+      document.getElementById('jobModal').classList.remove('hidden');
+    }
+
+    function addRoundRow() {
+      currentRounds.push({ round: '', date: '' });
+      renderRoundsTable();
+    }
+
+    function removeRoundRow(index) {
+      currentRounds.splice(index, 1);
+      renderRoundsTable();
+    }
+
+    function updateRound(index, field, value) {
+      currentRounds[index][field] = value;
+    }
+
+    function renderRoundsTable() {
+      const tbody = document.getElementById('roundsTable');
+      if (currentRounds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-slate-500 text-xs">No rounds added yet</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = currentRounds.map((round, idx) => `
+        <tr class="hover:bg-slate-700/50">
+          <td class="px-3 py-2">
+            <input type="text" placeholder="e.g., Technical Round" value="${escapeHtml(round.round)}" onchange="updateRound(${idx}, 'round', this.value)" class="w-full px-2 py-1 bg-slate-700 border border-slate-600 rounded text-white text-xs placeholder-slate-500 focus:ring-1 focus:ring-indigo-500 outline-none"/>
+          </td>
+          <td class="px-3 py-2">
+            <input type="date" value="${round.date}" onchange="updateRound(${idx}, 'date', this.value)" class="w-full px-2 py-1 bg-slate-700 border border-slate-600 rounded text-white text-xs focus:ring-1 focus:ring-indigo-500 outline-none"/>
+          </td>
+          <td class="px-3 py-2 text-center">
+            <button type="button" onclick="removeRoundRow(${idx})" class="text-red-400 hover:text-red-300 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function closeModal() {
+      document.getElementById('jobModal').classList.add('hidden');
+    }
+
+    async function handleJobSubmit(e) {
+      e.preventDefault();
+      const editingId = document.getElementById('editingJobId').value;
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      const jobData = {
+        company: document.getElementById('jobCompany').value,
+        position: document.getElementById('jobPosition').value,
+        status: document.getElementById('jobStatus').value,
+        applied_date: document.getElementById('jobDate').value,
+        notes: document.getElementById('jobNotes').value,
+        user_id: currentUser,
+        rounds: JSON.stringify(currentRounds)
+      };
+
+      let result;
+      if (editingId) {
+        const existingJob = jobs.find(j => j.__backendId === editingId);
+        result = await window.dataSdk.update({ ...existingJob, ...jobData });
+      } else {
+        if (recordCount >= 999) {
+          showToast('Maximum limit reached', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Save';
+          return;
+        }
+        result = await window.dataSdk.create(jobData);
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Save';
+
+      if (result.isOk) {
+        closeModal();
+        showToast(editingId ? 'Application updated!' : 'Application added!', 'success');
+      } else {
+        showToast('Error saving application', 'error');
+      }
+    }
+
+    function openDeleteConfirm(job) {
+      jobToDelete = job;
+      document.getElementById('deleteConfirm').classList.remove('hidden');
+    }
+
+    function closeDeleteConfirm() {
+      jobToDelete = null;
+      document.getElementById('deleteConfirm').classList.add('hidden');
+    }
+
+    async function confirmDelete() {
+      if (!jobToDelete) return;
+      const btn = document.getElementById('confirmDeleteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+
+      const result = await window.dataSdk.delete(jobToDelete);
+      
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      closeDeleteConfirm();
+
+      if (result.isOk) {
+        showToast('Application deleted', 'success');
+      } else {
+        showToast('Error deleting application', 'error');
+      }
+    }
+
+    function renderJobs() {
+      const container = document.getElementById('jobList');
+      const warning = document.getElementById('limitWarning');
+      
+      if (recordCount >= 999) {
+        warning.classList.remove('hidden');
+      } else {
+        warning.classList.add('hidden');
+      }
+
+      if (jobs.length === 0) {
+        container.innerHTML = `
+          <div class="card-gradient rounded-xl p-8 border border-slate-700/50 text-center">
+            <svg class="w-16 h-16 text-slate-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <p class="text-slate-400">No job applications yet. Click "Add Application" to get started!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = jobs.map(job => `
+        <div class="card-gradient rounded-xl p-5 border border-slate-700/50 hover:border-indigo-500/30 transition-all slide-in" data-job-id="${job.__backendId}">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h3 class="text-lg font-semibold">${escapeHtml(job.company)}</h3>
+                <span class="px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(job.status)}">${job.status}</span>
+              </div>
+              <p class="text-slate-300">${escapeHtml(job.position)}</p>
+              ${job.applied_date ? `<p class="text-slate-500 text-sm mt-1">Applied: ${formatDate(job.applied_date)}</p>` : ''}
+              ${job.notes ? `<p class="text-slate-400 text-sm mt-2 italic">"${escapeHtml(job.notes)}"</p>` : ''}
+              ${job.rounds && JSON.parse(job.rounds).length > 0 ? `<div class="mt-3 text-xs"><p class="text-slate-500 font-medium mb-1">Rounds:</p><div class="space-y-1">${JSON.parse(job.rounds).map(r => `<p class="text-slate-400">• ${escapeHtml(r.round)} - ${formatDate(r.date)}</p>`).join('')}</div></div>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick='openEditModal(${JSON.stringify(job).replace(/'/g, "\\'")})' class="p-2 bg-slate-700 rounded-lg hover:bg-slate-600 transition-all" title="Edit">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </button>
+              <button onclick='openDeleteConfirm(${JSON.stringify(job).replace(/'/g, "\\'")})' class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all" title="Delete">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      document.getElementById('statTotal').textContent = jobs.length;
+      document.getElementById('statApplied').textContent = jobs.filter(j => j.status === 'Applied').length;
+      document.getElementById('statInterview').textContent = jobs.filter(j => j.status === 'Interview').length;
+      document.getElementById('statOffer').textContent = jobs.filter(j => j.status === 'Offer').length;
+    }
+
+    function getStatusClass(status) {
+      const classes = {
+        'Applied': 'bg-blue-500/20 text-blue-400',
+        'Screening': 'bg-cyan-500/20 text-cyan-400',
+        'Interview': 'bg-yellow-500/20 text-yellow-400',
+        'Offer': 'bg-green-500/20 text-green-400',
+        'Rejected': 'bg-red-500/20 text-red-400'
+      };
+      return classes[status] || 'bg-slate-500/20 text-slate-400';
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toastIcon');
+      const msg = document.getElementById('toastMessage');
+
+      const icons = {
+        success: '<svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+        error: '<svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+        info: '<svg class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>'
+      };
+
+      icon.innerHTML = icons[type] || icons.info;
+      msg.textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // Initialize
+    initDataSdk();
+    applyConfig();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c8d1255d4d0548f',t:'MTc3MDIzODU1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
