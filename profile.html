@@ -30,10 +30,8 @@
                         class="nav-link hover:text-indigo-400 transition-colors">Home</button>
                     <button onclick="navigateTo('contact')"
                         class="nav-link hover:text-indigo-400 transition-colors">Contact</button>
-                    <span id="userDisplay" class="hidden text-indigo-400 font-medium"></span>
-                    <button id="profileNavBtn" onclick="navigateTo('profile')"
-                        class="hidden nav-link hover:text-indigo-400 transition-colors text-indigo-400">👤
-                        Profile</button>
+                    <button id="userDisplay" onclick="navigateTo('profile')"
+                        class="hidden nav-link hover:text-indigo-400 transition-colors font-medium text-indigo-400"></button>
                     <button id="dashboardNavBtn" onclick="navigateTo('dashboard')"
                         class="hidden nav-link hover:text-indigo-400 transition-colors">Dashboard</button>
                     <button id="loginHeaderBtn" onclick="scrollToAuthForm('login')"
@@ -60,41 +58,57 @@
                             </svg> Download CV as PDF </button>
                     </div><!-- Personal Information Section -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg> Personal Information
-                        </h2>
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-xl font-bold flex items-center gap-2">
+                                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor"
+                                    viewbox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg> Personal Information
+                            </h2>
+                            <button onclick="openChangePasswordModal()"
+                                class="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">Change
+                                Password</button>
+                        </div>
                         <form id="personalForm" onsubmit="saveProfile(event)" class="space-y-4">
                             <div class="grid md:grid-cols-2 gap-4">
+                                <div><label for="profileUserId"
+                                        class="block text-sm font-medium text-slate-300 mb-2">User ID</label>
+                                    <input type="text" id="profileUserId" readonly disabled
+                                        class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-slate-400 cursor-not-allowed">
+                                </div>
                                 <div><label for="fullName" class="block text-sm font-medium text-slate-300 mb-2">Full
-                                        Name *</label> <input type="text" id="fullName" required
+                                        Name *</label>
+                                    <input type="text" id="fullName" required
                                         class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500"
                                         placeholder="Your full name">
                                 </div>
                                 <div><label for="email" class="block text-sm font-medium text-slate-300 mb-2">Email
-                                        *</label> <input type="email" id="email" required
+                                        *</label>
+                                    <input type="email" id="email" required
                                         class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500"
                                         placeholder="your@email.com">
                                 </div>
                                 <div><label for="phone"
-                                        class="block text-sm font-medium text-slate-300 mb-2">Phone</label> <input
-                                        type="tel" id="phone"
+                                        class="block text-sm font-medium text-slate-300 mb-2">Phone</label>
+                                    <input type="tel" id="phone"
                                         class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500"
-                                        placeholder="+1 (555) 000-0000">
+                                        placeholder="+91 1234567890">
                                 </div>
                                 <div><label for="location"
-                                        class="block text-sm font-medium text-slate-300 mb-2">Location</label> <input
-                                        type="text" id="location"
+                                        class="block text-sm font-medium text-slate-300 mb-2">Location</label>
+                                    <input type="text" id="location"
                                         class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500"
                                         placeholder="City, Country">
                                 </div>
-                            </div><button type="submit" id="savePersonalBtn"
+                            </div>
+                            <button type="submit" id="savePersonalBtn"
                                 class="w-full py-3 bg-indigo-600 rounded-xl font-semibold hover:bg-indigo-500 transition-all">Save
                                 Personal Info</button>
                         </form>
-                    </div><!-- Professional Summary -->
+                    </div>
+
+                    <!-- Professional Summary -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
                         <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
                             <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
@@ -112,73 +126,146 @@
                                 class="w-full py-3 bg-purple-600 rounded-xl font-semibold hover:bg-purple-500 transition-all">Save
                                 Summary</button>
                         </form>
-                    </div><!-- Skills Section -->
+                    </div>
+
+                    <!-- Skills Section (Dynamic Table) -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg> Skills
+                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor"
+                                    viewbox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg> Skills
+                            </div>
+                            <button type="button" onclick="addSkillRow()"
+                                class="text-sm bg-blue-600 px-3 py-1 rounded hover:bg-blue-500 transition-colors">+ Add
+                                Skill</button>
                         </h2>
                         <form onsubmit="saveProfile(event)" class="space-y-4">
-                            <div><label for="skills" class="block text-sm font-medium text-slate-300 mb-2">Skills (comma
-                                    separated)</label> <textarea id="skills" rows="3"
-                                    class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none"
-                                    placeholder="e.g., JavaScript, Python, React, Node.js"></textarea>
-                            </div><button type="submit"
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-700 text-sm">
+                                            <th class="px-2 py-2 font-medium">Skill Name</th>
+                                            <th class="px-2 py-2 font-medium w-40">Level</th>
+                                            <th class="px-2 py-2 font-medium w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="skillsTableBody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit"
                                 class="w-full py-3 bg-blue-600 rounded-xl font-semibold hover:bg-blue-500 transition-all">Save
                                 Skills</button>
                         </form>
-                    </div><!-- Experience Section -->
+                    </div>
+
+                    <!-- Experience Section (Dynamic Table) -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                            </svg> Work Experience
+                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor"
+                                    viewbox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                </svg> Work Experience
+                            </div>
+                            <button type="button" onclick="addExperienceRow()"
+                                class="text-sm bg-yellow-600 px-3 py-1 rounded hover:bg-yellow-500 transition-colors">+
+                                Add Experience</button>
                         </h2>
                         <form onsubmit="saveProfile(event)" class="space-y-4">
-                            <div><label for="experience"
-                                    class="block text-sm font-medium text-slate-300 mb-2">Experience Details</label>
-                                <textarea id="experience" rows="4"
-                                    class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none"
-                                    placeholder="Job Title - Company (Year) - Description..."></textarea>
-                            </div><button type="submit"
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-700 text-sm">
+                                            <th class="px-2 py-2 font-medium">Role</th>
+                                            <th class="px-2 py-2 font-medium">Company</th>
+                                            <th class="px-2 py-2 font-medium w-40">Duration</th>
+                                            <th class="px-2 py-2 font-medium w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="experienceTableBody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit"
                                 class="w-full py-3 bg-yellow-600 rounded-xl font-semibold hover:bg-yellow-500 transition-all">Save
                                 Experience</button>
                         </form>
-                    </div><!-- Education Section -->
+                    </div>
+
+                    <!-- Education Section (Dynamic Table) -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 6.253v13m0-13C6.596 6.289 2.25 9.486 2.25 13.5c0 5.355 3.414 9.955 8.059 11.863m0-13c5.404.24 9.75 3.437 9.75 7.863 0 5.355-3.414 9.955-8.059 11.863M12 6.253L9.239 9.07M12 6.253l2.761 2.817" />
-                            </svg> Education
+                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor"
+                                    viewbox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13m0-13C6.596 6.289 2.25 9.486 2.25 13.5c0 5.355 3.414 9.955 8.059 11.863m0-13c5.404.24 9.75 3.437 9.75 7.863 0 5.355-3.414 9.955-8.059 11.863M12 6.253L9.239 9.07M12 6.253l2.761 2.817" />
+                                </svg> Education
+                            </div>
+                            <button type="button" onclick="addEducationRow()"
+                                class="text-sm bg-green-600 px-3 py-1 rounded hover:bg-green-500 transition-colors">+
+                                Add Education</button>
                         </h2>
                         <form onsubmit="saveProfile(event)" class="space-y-4">
-                            <div><label for="education" class="block text-sm font-medium text-slate-300 mb-2">Education
-                                    Details</label> <textarea id="education" rows="4"
-                                    class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none"
-                                    placeholder="Degree - University (Year) - CGPA/Grade..."></textarea>
-                            </div><button type="submit"
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-700 text-sm">
+                                            <th class="px-2 py-2 font-medium">Degree</th>
+                                            <th class="px-2 py-2 font-medium">Institution</th>
+                                            <th class="px-2 py-2 font-medium w-32">Year</th>
+                                            <th class="px-2 py-2 font-medium w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="educationTableBody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit"
                                 class="w-full py-3 bg-green-600 rounded-xl font-semibold hover:bg-green-500 transition-all">Save
                                 Education</button>
                         </form>
-                    </div><!-- Certifications Section -->
+                    </div>
+
+                    <!-- Certifications Section (Dynamic Table) -->
                     <div class="card-gradient rounded-2xl p-6 border border-slate-700/50 mb-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewbox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                            </svg> Certifications
+                        <h2 class="text-xl font-bold mb-6 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor"
+                                    viewbox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                </svg> Certifications
+                            </div>
+                            <button type="button" onclick="addCertificationRow()"
+                                class="text-sm bg-pink-600 px-3 py-1 rounded hover:bg-pink-500 transition-colors">+ Add
+                                Certification</button>
                         </h2>
                         <form onsubmit="saveProfile(event)" class="space-y-4">
-                            <div><label for="certifications"
-                                    class="block text-sm font-medium text-slate-300 mb-2">Certifications</label>
-                                <textarea id="certifications" rows="3"
-                                    class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500 resize-none"
-                                    placeholder="Certification Name - Issuer (Year)..."></textarea>
-                            </div><button type="submit"
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-700 text-sm">
+                                            <th class="px-2 py-2 font-medium">Certification</th>
+                                            <th class="px-2 py-2 font-medium">Issuer</th>
+                                            <th class="px-2 py-2 font-medium w-32">Year</th>
+                                            <th class="px-2 py-2 font-medium w-16 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="certificationsTableBody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit"
                                 class="w-full py-3 bg-pink-600 rounded-xl font-semibold hover:bg-pink-500 transition-all">Save
                                 Certifications</button>
                         </form>
@@ -273,6 +360,49 @@
                     <div id="authRegMsg" class="hidden text-sm"></div><button type="submit"
                         class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Create
                         Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeChangePasswordModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm p-6">
+            <div class="card-gradient rounded-2xl p-8 border border-slate-700/50">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Change Password</h2>
+                    <button onclick="closeChangePasswordModal()"
+                        class="text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form id="changePasswordForm" onsubmit="handleChangePassword(event)" class="space-y-4">
+                    <div>
+                        <label for="oldPassword" class="block text-sm font-medium text-slate-300 mb-2">Old
+                            Password</label>
+                        <input type="password" id="oldPassword" required
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500">
+                    </div>
+                    <div>
+                        <label for="newPassword" class="block text-sm font-medium text-slate-300 mb-2">New
+                            Password</label>
+                        <input type="password" id="newPassword" required
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500">
+                    </div>
+                    <div>
+                        <label for="confirmNewPassword" class="block text-sm font-medium text-slate-300 mb-2">Confirm
+                            New Password</label>
+                        <input type="password" id="confirmNewPassword" required
+                            class="w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-500">
+                    </div>
+                    <div id="changePassMsg" class="hidden text-sm"></div>
+                    <button type="submit"
+                        class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-semibold hover:from-indigo-500 hover:to-purple-500 transition-all">Update
+                        Password</button>
                 </form>
             </div>
         </div>

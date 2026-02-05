@@ -18,13 +18,19 @@ let jobs = [];
 let jobToDelete = null;
 let recordCount = 0;
 let currentRounds = [];
+// Profile data state
+let profileSkills = [];
+let profileExperience = [];
+let profileEducation = [];
+let profileCertifications = [];
 let profileData = {};
 
 // Valid user credentials (for demo)
 const validUsers = {
   'akshayjain': 'password123'
 };
-const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || {}; // PERSISTENCE
+// Registered users storage: { userId: { password: '...', email: '...' } }
+const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers')) || {};
 
 // Element SDK
 if (window.elementSdk) {
@@ -83,10 +89,7 @@ const dataHandler = {
   onDataChanged(data) {
     // Only modify jobs that belong to the current user
     jobs = data.filter(j => j.user_id === currentUser);
-    recordCount = data.length; // This might count all jobs, but limit logic uses it
-    // The limit check in the original code used recordCount, which was derived from ALL data
-    // For multi-tenant safety, maybe checking user's jobs count is better, but sticking to original logic
-    // except filtering logic above.
+    recordCount = data.length;
 
     // If we are on dashboard, re-render
     if (document.getElementById('jobList')) {
@@ -95,7 +98,7 @@ const dataHandler = {
     }
 
     // If we are on profile, reload profile
-    if (document.getElementById('profilePage') || document.getElementById('personalForm')) {
+    if (document.getElementById('profilePage')) {
       loadProfile();
     }
   }
@@ -135,7 +138,6 @@ function navigateTo(page) {
 function checkAuth() {
   if (currentUser) {
     const userDisplay = document.getElementById('userDisplay');
-    const profileBtn = document.getElementById('profileNavBtn');
     const dashboardBtn = document.getElementById('dashboardNavBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const loginHeaderBtn = document.getElementById('loginHeaderBtn');
@@ -145,7 +147,6 @@ function checkAuth() {
       userDisplay.textContent = `👤 ${currentUser}`;
       userDisplay.classList.remove('hidden');
     }
-    if (profileBtn) profileBtn.classList.remove('hidden');
     if (dashboardBtn) dashboardBtn.classList.remove('hidden');
     if (logoutBtn) logoutBtn.classList.remove('hidden');
 
@@ -241,7 +242,19 @@ function handleLogin(e) {
   const userId = userIdInput.value.trim();
   const password = passwordInput.value;
 
-  if (validUsers[userId] === password || registeredUsers[userId] === password) {
+  // Check validUsers (demo static) OR registeredUsers (localStorage)
+  // registeredUsers now stores objects: { password: '...', email: '...' }
+  // Backward compatibility check: if it's a string, treat as password.
+  let isRegistered = false;
+  if (registeredUsers[userId]) {
+    const stored = registeredUsers[userId];
+    const storedPass = (typeof stored === 'string') ? stored : stored.password;
+    if (storedPass === password) {
+      isRegistered = true;
+    }
+  }
+
+  if ((validUsers[userId] === password) || isRegistered) {
     currentUser = userId;
     localStorage.setItem('currentUser', currentUser); // PERSIST
 
@@ -266,11 +279,11 @@ function handleRegister(e) {
   const userIdInput = isModal ? document.getElementById('authRegUserId') : document.getElementById('regUserId');
   const emailInput = isModal ? document.getElementById('authRegEmail') : document.getElementById('regEmail');
   const passwordInput = isModal ? document.getElementById('authRegPassword') : document.getElementById('regPassword');
-  // Note: Modal doesn't have confirm password in original code? Checking lines 397-405... yes, modal has no confirm.
-  // Main form has confirm.
+
   const confirmPasswordInput = isModal ? null : document.getElementById('regConfirmPassword');
 
   const userId = userIdInput.value.trim();
+  const email = emailInput.value.trim();
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : password; // Skip check if no field
   const msgEl = isModal ? document.getElementById('authRegMsg') : document.getElementById('registerMsg');
@@ -296,7 +309,8 @@ function handleRegister(e) {
     return;
   }
 
-  registeredUsers[userId] = password;
+  // Store object with password and email for autofill
+  registeredUsers[userId] = { password, email };
   localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers)); // PERSIST
 
   msgEl.textContent = 'Account created! Please login.';
@@ -378,6 +392,83 @@ function handleForgotPassword(e) {
   }, 2000);
 }
 
+// Change Password
+function openChangePasswordModal() {
+  document.getElementById('changePasswordModal').classList.remove('hidden');
+}
+
+function closeChangePasswordModal() {
+  document.getElementById('changePasswordModal').classList.add('hidden');
+  const form = document.getElementById('changePasswordForm');
+  if (form) form.reset();
+  const msg = document.getElementById('changePassMsg');
+  if (msg) msg.classList.add('hidden');
+}
+
+function handleChangePassword(e) {
+  e.preventDefault();
+  const oldPass = document.getElementById('oldPassword').value;
+  const newPass = document.getElementById('newPassword').value;
+  const confirmPass = document.getElementById('confirmNewPassword').value;
+  const msgEl = document.getElementById('changePassMsg');
+
+  // Verify old password
+  let currentStored = registeredUsers[currentUser];
+  // Normalize legacy data if string
+  if (typeof currentStored === 'string') currentStored = { password: currentStored, email: '' };
+
+  // If user is from validUsers (demo data), we might not allow change or just simulate it.
+  // Assuming mostly registered users.
+  const isDemoUser = validUsers[currentUser] === oldPass;
+  const isRegUser = currentStored && currentStored.password === oldPass;
+
+  if (!isDemoUser && !isRegUser) {
+    msgEl.textContent = 'Incorrect old password.';
+    msgEl.classList.remove('hidden', 'text-green-400');
+    msgEl.classList.add('text-red-400');
+    return;
+  }
+
+  if (newPass !== confirmPass) {
+    msgEl.textContent = 'New passwords do not match.';
+    msgEl.classList.remove('hidden', 'text-green-400');
+    msgEl.classList.add('text-red-400');
+    return;
+  }
+
+  if (newPass.length < 6) {
+    msgEl.textContent = 'Password must be at least 6 characters.';
+    msgEl.classList.remove('hidden', 'text-green-400');
+    msgEl.classList.add('text-red-400');
+    return;
+  }
+
+  // Update password
+  if (registeredUsers[currentUser]) {
+    if (typeof registeredUsers[currentUser] === 'string') {
+      registeredUsers[currentUser] = { password: newPass, email: '' };
+    } else {
+      registeredUsers[currentUser].password = newPass;
+    }
+    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+  } else {
+    // If it was a demo user, we can't really save it permanently unless we move them to registeredUsers
+    // For this app context (demo), let's just create an entry in registeredUsers
+    registeredUsers[currentUser] = { password: newPass, email: '' };
+    localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+  }
+
+  msgEl.textContent = 'Password updated successfully!';
+  msgEl.classList.remove('text-red-400');
+  msgEl.classList.add('text-green-400');
+  msgEl.classList.remove('hidden');
+
+  setTimeout(() => {
+    closeChangePasswordModal();
+    showToast('Password changed!', 'success');
+  }, 1500);
+}
+
 // Contact form
 function handleContact(e) {
   e.preventDefault();
@@ -391,74 +482,76 @@ function handleContact(e) {
 // Profile
 function loadProfile() {
   if (!currentUser) return;
-  // In a real app we fetch. Here we rely on jobs data loaded via SDK for profile? 
-  // The original code: const data = jobs.find(j => j.user_id === currentUser);
-  // But 'jobs' is filtered by currentUser already in DataHandler.
-  // So checks: jobs.find(j => j.company === 'Profile' && j.position === 'Professional')?
-  // Wait, look at saveProfile in original code:
-  // user_id: `profile_${currentUser}`, company: 'Profile', position: 'Professional'
-  // This means the profile is stored as a "job" entry with specific ID.
-  // But my filtering `jobs = data.filter(j => j.user_id === currentUser);` will REMOVE it if I filter by exact match!
-  // I need to adjust the dataHandler filter or the save mechanism.
-  // The original code `jobs = data.filter(j => j.user_id === currentUser);`
-  // And `saveProfile` used `user_id: profile_${currentUser}`.
-  // So the original code actually BROKE profile loading if it filtered strictly?
-  // Let's re-read line 574: `jobs = data.filter(j => j.user_id === currentUser);`
-  // And line 798: `user_id: profile_${currentUser}`.
-  // Yes, the original code had a bug or 'jobs' list didnt include profile.
-  // BUT `loadProfile` at 769: `const data = jobs.find(j => j.user_id === currentUser);`
-  // This implies profile data WAS expected to have user_id === currentUser?
-  // But saveProfile sets it to `profile_${currentUser}`.
-  // Ah, maybe the intent was to store it separately.
-
-  // FIX: I will change saveProfile to use `user_id: currentUser` but with distinct company/position marks,
-  // OR I will fetch all data and filter more smartly.
-  // Since I don't control the backend SDK completely, I should stick to what might work.
-  // The safest is to store profile as a special job with `user_id: currentUser` and `is_profile: true` or similar.
-  // But I must match existing schema field usage.
-  // I'll stick to `user_id: currentUser` for profile too, so it appears in `jobs`.
-  // I will add a property `type: 'profile'` to distinguish if possible, or just rely on company='Profile'.
 
   const profileInfo = jobs.find(j => j.company === 'Profile' && j.position === 'Professional');
 
   if (profileInfo) {
     profileData = { ...profileInfo };
+  } else {
+    profileData = {};
   }
 
+  // Auto-fill from registration data if available
   const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; }
 
+  // Set UserID (read-only)
+  setVal('profileUserId', currentUser);
+
+  // Try to find email from registeredUsers if not in profileData (or if profileData is empty)
+  let userEmail = profileData.email;
+  if (!userEmail && registeredUsers[currentUser]) {
+    const stored = registeredUsers[currentUser];
+    userEmail = (typeof stored === 'object') ? stored.email : '';
+  }
+
   setVal('fullName', profileData.full_name);
-  setVal('email', profileData.email);
+  setVal('email', userEmail);
   setVal('phone', profileData.phone);
   setVal('location', profileData.location);
   setVal('summary', profileData.professional_summary);
-  setVal('skills', profileData.skills);
-  setVal('experience', profileData.experience);
-  setVal('education', profileData.education);
-  setVal('certifications', profileData.certifications);
+
+  try {
+    profileSkills = profileData.skills ? JSON.parse(profileData.skills) : [];
+  } catch (e) { profileSkills = []; }
+
+  try {
+    profileExperience = profileData.experience ? JSON.parse(profileData.experience) : [];
+  } catch (e) { profileExperience = []; }
+
+  try {
+    profileEducation = profileData.education ? JSON.parse(profileData.education) : [];
+  } catch (e) { profileEducation = []; }
+
+  try {
+    profileCertifications = profileData.certifications ? JSON.parse(profileData.certifications) : [];
+  } catch (e) { profileCertifications = []; }
+
+  renderSkillsTable();
+  renderExperienceTable();
+  renderEducationTable();
+  renderCertificationsTable();
 }
 
 async function saveProfile(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
 
   const profileInfo = {
     full_name: document.getElementById('fullName').value,
     email: document.getElementById('email').value,
     phone: document.getElementById('phone').value,
     location: document.getElementById('location').value,
-    professional_summary: document.getElementById('summary').value,
-    skills: document.getElementById('skills').value,
-    experience: document.getElementById('experience').value,
-    education: document.getElementById('education').value,
-    certifications: document.getElementById('certifications').value,
-    user_id: currentUser, // FIX: Use same user_id so it loads in 'jobs'
+    professional_summary: document.getElementById('summary') ? document.getElementById('summary').value : (profileData.professional_summary || ''),
+    skills: JSON.stringify(profileSkills),
+    experience: JSON.stringify(profileExperience),
+    education: JSON.stringify(profileEducation),
+    certifications: JSON.stringify(profileCertifications),
+    user_id: currentUser,
     company: 'Profile',
     position: 'Professional',
-    status: 'Profile', // special status
+    status: 'Profile',
     rounds: '[]'
   };
 
-  // Check if profile exists to update
   const existingProfile = jobs.find(j => j.company === 'Profile' && j.position === 'Professional');
 
   let result;
@@ -470,22 +563,158 @@ async function saveProfile(e) {
 
   if (result.isOk) {
     showToast('Profile saved successfully!', 'success');
-    // re-fetch will happen via sdk callback
   } else {
     showToast('Error saving profile', 'error');
   }
 }
+
+// ------ Dynamic List Helpers ------
+
+// Skills
+function addSkillRow() {
+  profileSkills.push({ name: '', level: 'Beginner' });
+  renderSkillsTable();
+}
+function removeSkillRow(index) {
+  profileSkills.splice(index, 1);
+  renderSkillsTable();
+}
+function updateSkill(index, field, value) {
+  profileSkills[index][field] = value;
+}
+function renderSkillsTable() {
+  const container = document.getElementById('skillsTableBody');
+  if (!container) return;
+
+  if (profileSkills.length === 0) {
+    container.innerHTML = '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500 text-sm">No skills added yet</td></tr>';
+    return;
+  }
+  container.innerHTML = profileSkills.map((item, idx) => `
+    <tr class="hover:bg-slate-700/30 transition-colors">
+      <td class="px-2 py-2">
+        <input type="text" placeholder="Skill Name" value="${escapeHtml(item.name || '')}" onchange="updateSkill(${idx}, 'name', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:ring-1 focus:ring-indigo-500 outline-none"/>
+      </td>
+      <td class="px-2 py-2">
+        <select onchange="updateSkill(${idx}, 'level', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:ring-1 focus:ring-indigo-500 outline-none">
+           <option value="Beginner" ${item.level === 'Beginner' ? 'selected' : ''}>Beginner</option>
+           <option value="Intermediate" ${item.level === 'Intermediate' ? 'selected' : ''}>Intermediate</option>
+           <option value="Advanced" ${item.level === 'Advanced' ? 'selected' : ''}>Advanced</option>
+           <option value="Expert" ${item.level === 'Expert' ? 'selected' : ''}>Expert</option>
+        </select>
+      </td>
+      <td class="px-2 py-2 text-center">
+        <button type="button" onclick="removeSkillRow(${idx})" class="text-red-400 hover:text-red-300">
+           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Experience
+function addExperienceRow() {
+  profileExperience.push({ role: '', company: '', duration: '' });
+  renderExperienceTable();
+}
+function removeExperienceRow(index) {
+  profileExperience.splice(index, 1);
+  renderExperienceTable();
+}
+function updateExperience(index, field, value) {
+  profileExperience[index][field] = value;
+}
+function renderExperienceTable() {
+  const container = document.getElementById('experienceTableBody');
+  if (!container) return;
+  if (profileExperience.length === 0) {
+    container.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 text-sm">No experience added yet</td></tr>';
+    return;
+  }
+  container.innerHTML = profileExperience.map((item, idx) => `
+    <tr class="hover:bg-slate-700/30 transition-colors">
+       <td class="px-2 py-2"><input type="text" placeholder="Role/Title" value="${escapeHtml(item.role || '')}" onchange="updateExperience(${idx}, 'role', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Company" value="${escapeHtml(item.company || '')}" onchange="updateExperience(${idx}, 'company', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Duration (e.g. 2020-2022)" value="${escapeHtml(item.duration || '')}" onchange="updateExperience(${idx}, 'duration', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2 text-center"><button type="button" onclick="removeExperienceRow(${idx})" class="text-red-400 hover:text-red-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>
+    </tr>
+  `).join('');
+}
+
+// Education
+function addEducationRow() {
+  profileEducation.push({ degree: '', institution: '', year: '' });
+  renderEducationTable();
+}
+function removeEducationRow(index) {
+  profileEducation.splice(index, 1);
+  renderEducationTable();
+}
+function updateEducation(index, field, value) {
+  profileEducation[index][field] = value;
+}
+function renderEducationTable() {
+  const container = document.getElementById('educationTableBody');
+  if (!container) return;
+  if (profileEducation.length === 0) {
+    container.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 text-sm">No education added yet</td></tr>';
+    return;
+  }
+  container.innerHTML = profileEducation.map((item, idx) => `
+    <tr class="hover:bg-slate-700/30 transition-colors">
+       <td class="px-2 py-2"><input type="text" placeholder="Degree" value="${escapeHtml(item.degree || '')}" onchange="updateEducation(${idx}, 'degree', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Institution" value="${escapeHtml(item.institution || '')}" onchange="updateEducation(${idx}, 'institution', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Year" value="${escapeHtml(item.year || '')}" onchange="updateEducation(${idx}, 'year', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2 text-center"><button type="button" onclick="removeEducationRow(${idx})" class="text-red-400 hover:text-red-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>
+    </tr>
+  `).join('');
+}
+
+// Certifications
+function addCertificationRow() {
+  profileCertifications.push({ name: '', issuer: '', year: '' });
+  renderCertificationsTable();
+}
+function removeCertificationRow(index) {
+  profileCertifications.splice(index, 1);
+  renderCertificationsTable();
+}
+function updateCertification(index, field, value) {
+  profileCertifications[index][field] = value;
+}
+function renderCertificationsTable() {
+  const container = document.getElementById('certificationsTableBody');
+  if (!container) return;
+  if (profileCertifications.length === 0) {
+    container.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-slate-500 text-sm">No certifications added yet</td></tr>';
+    return;
+  }
+  container.innerHTML = profileCertifications.map((item, idx) => `
+    <tr class="hover:bg-slate-700/30 transition-colors">
+       <td class="px-2 py-2"><input type="text" placeholder="Certification Name" value="${escapeHtml(item.name || '')}" onchange="updateCertification(${idx}, 'name', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Issuer" value="${escapeHtml(item.issuer || '')}" onchange="updateCertification(${idx}, 'issuer', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2"><input type="text" placeholder="Year" value="${escapeHtml(item.year || '')}" onchange="updateCertification(${idx}, 'year', this.value)" class="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm outline-none"/></td>
+       <td class="px-2 py-2 text-center"><button type="button" onclick="removeCertificationRow(${idx})" class="text-red-400 hover:text-red-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></td>
+    </tr>
+  `).join('');
+}
+
 
 function exportToPDF() {
   const fullName = document.getElementById('fullName').value || 'Your Name';
   const email = document.getElementById('email').value || 'email@example.com';
   const phone = document.getElementById('phone').value || '+1 (555) 000-0000';
   const location = document.getElementById('location').value || 'City, Country';
-  const summary = document.getElementById('summary').value;
-  const skills = document.getElementById('skills').value;
-  const experience = document.getElementById('experience').value;
-  const education = document.getElementById('education').value;
-  const certifications = document.getElementById('certifications').value;
+  const summary = document.getElementById('summary') ? document.getElementById('summary').value : '';
+
+  // Helper to generate list items
+  const generateList = (items, fields) => {
+    if (!items || items.length === 0) return '';
+    return items.map(item => {
+      const parts = fields.map(f => item[f]).filter(val => val);
+      return `<div class="cv-item" style="margin-bottom:8px;">${parts.join(' - ')}</div>`;
+    }).join('');
+  };
 
   const cvHtml = `
         <div class="cv-container">
@@ -503,33 +732,48 @@ function exportToPDF() {
             </div>
           ` : ''}
 
-          ${skills ? `
+          ${profileSkills.length > 0 ? `
             <div class="cv-section">
               <div class="cv-section-title">SKILLS</div>
               <div class="cv-entry">
-                ${escapeHtml(skills).split(',').map(s => s.trim()).filter(s => s).join(' • ')}
+                ${profileSkills.map(s => `${escapeHtml(s.name)} (${escapeHtml(s.level)})`).join(' • ')}
               </div>
             </div>
           ` : ''}
 
-          ${experience ? `
+          ${profileExperience.length > 0 ? `
             <div class="cv-section">
               <div class="cv-section-title">WORK EXPERIENCE</div>
-              <div class="cv-entry">${escapeHtml(experience).replace(/\n/g, '<br>')}</div>
+              ${profileExperience.map(exp => `
+                 <div class="cv-entry">
+                   <div class="cv-entry-title">${escapeHtml(exp.role)} at ${escapeHtml(exp.company)}</div>
+                   <div class="cv-entry-subtitle">${escapeHtml(exp.duration)}</div>
+                 </div>
+              `).join('')}
             </div>
           ` : ''}
 
-          ${education ? `
+          ${profileEducation.length > 0 ? `
             <div class="cv-section">
               <div class="cv-section-title">EDUCATION</div>
-              <div class="cv-entry">${escapeHtml(education).replace(/\n/g, '<br>')}</div>
+              ${profileEducation.map(edu => `
+                 <div class="cv-entry">
+                   <div class="cv-entry-title">${escapeHtml(edu.degree)}</div>
+                   <div class="cv-entry-subtitle">${escapeHtml(edu.institution)} - ${escapeHtml(edu.year)}</div>
+                 </div>
+              `).join('')}
             </div>
           ` : ''}
 
-          ${certifications ? `
+          ${profileCertifications.length > 0 ? `
             <div class="cv-section">
               <div class="cv-section-title">CERTIFICATIONS</div>
-              <div class="cv-entry">${escapeHtml(certifications).replace(/\n/g, '<br>')}</div>
+              ${profileCertifications.map(cert => `
+                 <div class="cv-entry">
+                   <div class="cv-entry-title">${escapeHtml(cert.name)}</div>
+                   <div class="cv-entry-subtitle">${escapeHtml(cert.issuer)} - ${escapeHtml(cert.year)}</div>
+                 </div>
+              `).join('')}
             </div>
           ` : ''}
         </div>
@@ -799,8 +1043,9 @@ function showToast(message, type = 'info') {
     info: '<svg class="w-5 h-5 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>'
   };
 
-  icon.innerHTML = icons[type] || icons.info;
-  msg.textContent = message;
+  if (icon) icon.innerHTML = icons[type];
+  if (msg) msg.textContent = message;
+
   toast.classList.remove('translate-y-20', 'opacity-0');
 
   setTimeout(() => {
@@ -808,16 +1053,14 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
-// Auto-Run Init on load
-window.addEventListener('DOMContentLoaded', () => {
-  initDataSdk();
-  checkAuth();
+// Initialization
+window.addEventListener('DOMContentLoaded', async () => {
   applyConfig();
+  checkAuth();
+  await initDataSdk();
 
-  // Use param to switch auth tab if needed
-  const urlParams = new URLSearchParams(window.location.search);
-  const authParam = urlParams.get('auth');
-  if (authParam && document.getElementById('authCard')) {
-    setTimeout(() => scrollToAuthForm(authParam), 100);
+  // Page specific init
+  if (window.location.pathname.includes('profile.html')) {
+    loadProfile();
   }
 });
