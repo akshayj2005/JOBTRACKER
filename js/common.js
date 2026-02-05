@@ -1063,4 +1063,13 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (window.location.pathname.includes('profile.html')) {
     loadProfile();
   }
+
+  // Handle URL params for auth
+  const urlParams = new URLSearchParams(window.location.search);
+  const authType = urlParams.get('auth');
+  if (authType) {
+    // Clear the param
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(() => scrollToAuthForm(authType), 100);
+  }
 });
